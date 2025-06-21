@@ -1,6 +1,6 @@
 # Welcome to Mapping the Unseen: A practical guide to Small Area Estimation
 
-Welcome to the repository for the workshop "Mapping the Unseen: Small Area Estimation for Urban Analysis", which we presented at the 2025 CUPUM conference in London. This workshop introduces participants to Small Area Estimation (SAE) — a set of powerful statistical methods that allow us to produce reliable estimates for geographic or demographic domains with limited or no sample data. SAE is increasingly relevant for urban analysis, where we often face data gaps at fine spatial resolutions.
+Welcome to the repository for the workshop *"Mapping the Unseen: Small Area Estimation for Urban Analysis"*, which we presented at the 2025 CUPUM conference in London. This workshop introduces participants to Small Area Estimation (SAE) — a set of powerful statistical methods that allow us to produce reliable estimates for geographic or demographic domains with limited or no sample data. SAE is increasingly relevant for urban analysis, where we often face data gaps at fine spatial resolutions.
 
 This repository includes:
 
