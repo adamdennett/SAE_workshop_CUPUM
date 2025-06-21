@@ -342,20 +342,11 @@ dir_est <- sae::direct(
   y = eusilcA_smp2$eqIncome,
   dom = eusilcA_smp2$district,
   sweight = eusilcA_smp2$weight,
-  domsize = smp_area_size_df,
+  domsize = domsize_smp,
   replace = FALSE
 ) %>% 
   mutate(Var = SD^2) %>% 
   dplyr::select(Domain, Direct, Var)
-
-# Produce covariate matrix and scale the values
-# Define covariates
-covariates <- c("cash", "unempl_ben", "tax_adj")
-
-# Extract and scale covariates from eusilcA_popAgg
-Xmat_scaled <- eusilcA_popAgg %>%
-  dplyr::select(district = Domain, all_of(covariates)) %>%
-  mutate(across(all_of(covariates), ~ . / sd(.)))
 
 # Fit area-level intercept-only model
 fit <- smoothArea(
@@ -695,7 +686,7 @@ dir_est <- sae::direct(
   y = eusilcA_smp$eqIncome,
   dom = eusilcA_smp$district,
   sweight = eusilcA_smp$weight,
-  domsize = smp_area_size_df,
+  domsize = domsize_smp,
   replace = FALSE
 ) %>% 
   mutate(Var = SD^2) %>% 
