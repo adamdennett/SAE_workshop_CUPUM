@@ -17,14 +17,14 @@ This workshop is aimed at:
 
 No prior experience with SAE is required, but basic familiarity with R and survey data will help you get the most out of the practical.
 
-🧠 What you’ll learn
+## 🧠 What you’ll learn
 
 By the end of the workshop, you will:
 
-    - Understand why SAE methods are useful when working with sparse survey data
-    - Be able to implement direct, area-level, and unit-level SAE methods in R
-    - Know how to incorporate auxiliary data and spatial structure into your models
-    - Be equipped to choose the appropriate method depending on data availability
+- Understand why SAE methods are useful when working with sparse survey data
+- Be able to implement direct, area-level, and unit-level SAE methods in R
+- Know how to incorporate auxiliary data and spatial structure into your models
+- Be equipped to choose the appropriate method depending on data availability
 
-🚀 Getting started
+## 🚀 Getting started
 Make sure you have R ≥ 4.5.1 and install the required packages listed in the practicals. Follow the instructions in each RMarkdown or Quarto file to reproduce the results.
