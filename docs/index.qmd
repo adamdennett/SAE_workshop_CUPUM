@@ -23,7 +23,7 @@ format: html
 editor: visual
 ---
 
-Please, make sure you have `R version 4.5.1 (2025-06-13)` installed in your laptop.
+Please, make sure you have `R version 4.5.1 (2025-06-13)` installed in your laptop. You can download it from here: <https://cran.r-project.org/>
 
 ```{r, message=FALSE}
 # Install required packages if not already installed
