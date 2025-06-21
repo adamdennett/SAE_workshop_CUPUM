@@ -4,9 +4,8 @@ Welcome to the repository for the workshop *"Mapping the Unseen: Small Area Esti
 
 This repository includes:
 
-    🖥️ Workshop slides: Explaining the concepts behind direct, area-level, and unit-level estimators — from intuitive overviews to formal models.
-
-    💻 Hands-on R practicals: Step-by-step guide to demonstrate how to apply SAE methods using a toy data set included in the [`emdi` package](https://cran.r-project.org/web/packages/emdi/emdi.pdf) specifically developed for teaching SAE methods.
+- Workshop slides: Explaining the concepts behind direct, area-level, and unit-level estimators — from intuitive overviews to formal models.
+- Hands-on R practicals: Step-by-step guide to demonstrate how to apply SAE methods using a toy data set included in the [`emdi` package](https://cran.r-project.org/web/packages/emdi/emdi.pdf) specifically developed for teaching SAE methods.
 
 🎯 Who this is for
 
