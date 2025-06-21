@@ -210,7 +210,7 @@ window.Quarto = {
 </div>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods.</p>
+<p>In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods. You can access the <code>.qmd</code> document for this practical from <a href="https://github.com/cpeiretgarcia/SAE_workshop_CUPUM/blob/main/practical.qmd">this link</a>.</p>
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
@@ -531,19 +531,19 @@ dir_est, :</code></pre>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_intercept)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               domain     mean   median      var     lower    upper
-1           Amstetten 16195.91 16206.04  4390627 11994.813 19796.33
-2               Baden 20127.17 20074.84  6540452 15375.549 25386.83
-3             Bludenz 14587.68 14397.53  4674786 10778.020 19174.53
-4      Braunau am Inn 13945.21 13986.20  3376690  9907.247 17115.77
-5             Bregenz 21770.65 21516.60 10913695 15539.090 28523.98
-6 Bruck an der Leitha 19820.54 19933.57  8091047 14726.919 25040.00
+1           Amstetten 16011.12 16077.14  5614417 11396.281 20265.46
+2               Baden 19900.50 19960.91  6056477 15555.171 24909.88
+3             Bludenz 14507.37 14522.90  5658534  9871.910 19153.96
+4      Braunau am Inn 13891.30 14046.44  4399153  9728.586 17534.04
+5             Bregenz 22038.43 22133.68 10903153 16433.496 29789.92
+6 Bruck an der Leitha 19985.76 19819.64 10769630 14037.264 26644.35
                  method       se
-1 Area level model: IID 2095.382
-2 Area level model: IID 2557.431
-3 Area level model: IID 2162.125
-4 Area level model: IID 1837.577
-5 Area level model: IID 3303.588
-6 Area level model: IID 2844.477</code></pre>
+1 Area level model: IID 2369.476
+2 Area level model: IID 2460.991
+3 Area level model: IID 2378.767
+4 Area level model: IID 2097.416
+5 Area level model: IID 3301.992
+6 Area level model: IID 3281.711</code></pre>
 </div>
 </div>
 </section>
@@ -593,19 +593,19 @@ Generating estimates for all domains in X.domain.</code></pre>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_covariates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               domain     mean   median       var    lower    upper
-1           Amstetten 13118.81 13127.64  905030.9 11268.32 14965.79
-2               Baden 20111.70 20095.56 1044608.6 18170.74 22334.83
-3             Bludenz 12591.89 12657.84  979454.7 10460.68 14385.94
-4      Braunau am Inn 12209.33 12171.57  660710.4 10724.69 13920.57
-5             Bregenz 30557.00 30552.93 3359375.6 26974.30 34363.28
-6 Bruck an der Leitha 22518.73 22559.64 1422061.7 20464.72 24973.14
+1           Amstetten 13087.62 13122.32  886405.5 11262.24 15155.71
+2               Baden 20192.73 20193.84  904684.6 18414.50 21927.09
+3             Bludenz 12615.84 12621.36 1186526.7 10277.40 14785.70
+4      Braunau am Inn 12295.54 12273.79  706875.8 10688.63 13915.90
+5             Bregenz 30582.54 30703.92 3229339.0 26898.49 33996.75
+6 Bruck an der Leitha 22642.25 22616.42 1653461.4 20021.29 25099.21
                  method        se
-1 Area level model: IID  951.3311
-2 Area level model: IID 1022.0610
-3 Area level model: IID  989.6740
-4 Area level model: IID  812.8409
-5 Area level model: IID 1832.8599
-6 Area level model: IID 1192.5023</code></pre>
+1 Area level model: IID  941.4911
+2 Area level model: IID  951.1491
+3 Area level model: IID 1089.2781
+4 Area level model: IID  840.7591
+5 Area level model: IID 1797.0362
+6 Area level model: IID 1285.8699</code></pre>
 </div>
 </div>
 </section>
@@ -648,20 +648,20 @@ Generating estimates for all domains in X.domain.</code></pre>
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_spatial)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               domain     mean   median       var    lower    upper
-1           Amstetten 13072.99 13071.82  695251.3 11375.04 14731.26
-2               Baden 20217.48 20147.46 1071788.3 18423.94 22246.02
-3             Bludenz 12492.83 12464.75 1498531.9 10058.53 14967.76
-4      Braunau am Inn 12193.72 12220.42  709502.6 10441.81 13929.74
-5             Bregenz 30559.11 30465.52 3227556.3 27051.90 34210.68
-6 Bruck an der Leitha 22577.40 22601.58 1530551.2 20508.47 25065.06
+<pre><code>               domain     mean   median       var     lower    upper
+1           Amstetten 13058.57 13030.53  718260.4 11330.725 14718.16
+2               Baden 20135.53 20099.55 1144945.7 18128.920 22375.31
+3             Bludenz 12339.61 12397.54 1384762.2  9849.241 14400.13
+4      Braunau am Inn 12190.85 12144.86  629821.0 10665.462 13988.95
+5             Bregenz 30504.99 30676.38 3683694.9 26447.014 33895.47
+6 Bruck an der Leitha 22549.46 22529.30 1466383.3 20198.067 24792.92
                   method        se
-1 Area level model: BYM2  833.8173
-2 Area level model: BYM2 1035.2721
-3 Area level model: BYM2 1224.1454
-4 Area level model: BYM2  842.3198
-5 Area level model: BYM2 1796.5401
-6 Area level model: BYM2 1237.1545</code></pre>
+1 Area level model: BYM2  847.5024
+2 Area level model: BYM2 1070.0213
+3 Area level model: BYM2 1176.7592
+4 Area level model: BYM2  793.6126
+5 Area level model: BYM2 1919.2954
+6 Area level model: BYM2 1210.9431</code></pre>
 </div>
 </div>
 </section>
@@ -856,19 +856,19 @@ y_{id} = \mathbf{x}_{id}^\top \boldsymbol{\beta} + u_d + \epsilon_{id}
 <span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(unit_level)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                domain     mean   median     var     lower    upper
-3            Amstetten 14810.85 14865.72 1856104 12284.171 17447.81
-4                Baden 22365.41 22419.51 1377088 20051.678 24520.26
-67             Bludenz 12389.10 12461.73 3576752  8472.447 15621.60
-39      Braunau am Inn 12128.51 12127.41 2166261  9129.897 15128.60
-68             Bregenz 34838.42 34872.99 1784336 32161.605 37412.54
-5  Bruck an der Leitha 22359.29 22321.82 2238520 19611.759 25157.67
+3            Amstetten 14753.45 14742.43 1518816 12202.591 16988.65
+4                Baden 22411.40 22487.14 1493002 20370.937 24713.75
+67             Bludenz 12368.85 12222.01 3221683  8905.980 15792.05
+39      Braunau am Inn 12181.64 12200.39 1992747  9154.205 15211.84
+68             Bregenz 34939.48 34940.32 1672080 32506.813 37332.86
+5  Bruck an der Leitha 22364.51 22399.76 1849579 19526.713 24906.34
                   method       se
-3  Unit level model: IID 1362.389
-4  Unit level model: IID 1173.494
-67 Unit level model: IID 1891.230
-39 Unit level model: IID 1471.822
-68 Unit level model: IID 1335.791
-5  Unit level model: IID 1496.168</code></pre>
+3  Unit level model: IID 1232.403
+4  Unit level model: IID 1221.885
+67 Unit level model: IID 1794.905
+39 Unit level model: IID 1411.647
+68 Unit level model: IID 1293.089
+5  Unit level model: IID 1359.992</code></pre>
 </div>
 </div>
 </section>

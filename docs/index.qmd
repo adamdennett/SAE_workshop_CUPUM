@@ -60,7 +60,7 @@ library(GGally)       # For visualisations
 
 # Introduction
 
-In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods.
+In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods. You can access the `.qmd` document for this practical from [this link](https://github.com/cpeiretgarcia/SAE_workshop_CUPUM/blob/main/practical.qmd).
 
 # Data
 
