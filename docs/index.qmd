@@ -135,7 +135,7 @@ Now that we have a better understanding of the data, we can start calculating ou
 
 We will start by computing the most simple SAE estimator -- the direct estimator. Direct estimators use only information collected from the domain of interest. They are relatively simple to obtain, since they use the sample weights and population values. However, they are very sensitive to small sample sizes.
 
-Direct estimators can be produced using the `sae` package. The `direct()` function computes the Horvitz-Thompson estimator of domain means using this formula:
+We will calculate the direct estimator using the `sae` package. The `direct()` function computes the Horvitz-Thompson estimator of domain means using this formula:
 
 $$
 \hat{\bar{Y_d}} = \frac{1}{N_d} \sum_{i \in s_d} w_{di}Y_{di}
@@ -143,9 +143,11 @@ $$
 
 where $N_d$ is the population at the domain of interest $d$; $s_d$ is the set of sampled observations in domain $d$; $w_{di}$ is the sample weight for unit $i$ in domain $d$; and $Y_{di}$ is the observation of the target variable for unit $i$ in domain $d$, for all $i$ in $S_d$. In addition to the direct estimator of the mean, the `direct()` function also gives us the standard deviation and coefficient of variation for each domain.
 
-We will calculate the direct estimators under different assumptions, allowing for four possible combinations:
+From our survey, we know that the `weights` column represent the survey weights, and that sampling was done without replacement. This information can usually be found in the documentation of the survey, together with any clusters or strata that might have been defined by the surveyors. Additionally, we need the total population sizes for each domain in the sample.
 
--   Option A: accounts for sample weights and domain sizes, and sampling is performed without replacement. In this case, the direct estimator is calculated as follows:
+
+
+-   Scenario A: We have access for both sampling weights and domain sizes, and from the survey design we know that sampling was performed without replacement. In this case, the direct estimator is calculated as follows:
 
 $$
 \hat{\bar{Y_d}}^{dir} = \frac{1}{N_d} \sum_{i \in s_d} w_{di}y_{di}
@@ -157,7 +159,7 @@ $$
 \text{Var}(\hat{Y}_d^{dir}) = \frac{\sum_{i \in s_d} w_i (w_i -1)y_i^2}{N_d^2}
 $$
 
--   Option B: accounts for domain sizes, but without sample weights nor replacement. In this case, we do not need weights, nor domain populations, just the sample size.
+-   Scenario B: We have access to domain sizes, but not to the sampling weights, and we know the sampling was performed without replacement. In this case, we will ignore the sampling weights, just the sample size.
 
 $$
 \hat{Y}_d^{dir} = \frac{1}{n_d} \sum{i \in s_d} y_i 
@@ -171,7 +173,7 @@ $$
 
 Where $f_d = \frac{n_d}{N_d}$ and $S_d^2$ is the sample variance of the domain. Since we are introducing sampling without replacement, the variance of our estimator is reduced, because each time we draw a new sample removes one possibility from the population, slightly reducing the uncertainty for each subsequent draw. The $f_d$ factor ensures the variance is appropriately reduced for large samples relative to the domain size.
 
--   Option C: accounts for sample weights, domain sizes, and with replacement. In this case, the direct estimator is the same as in Option 1, since it also accounts for weights and uses domain sizes.
+-   Scenario C: We have access to sample weights, domain sizes, and know the sampling was done with replacement. In this case, the direct estimator is the same as in Scenario 1, since it also accounts for weights and uses domain sizes:
 
 $$
 \hat{\bar{Y_d}}^{dir} = \frac{1}{N_d} \sum_{i \in s_d} w_{di}y_{di}
@@ -183,7 +185,7 @@ $$
 \text{Var}(\hat{Y}d^{dir}) = \frac{1}{n_d} \sum_{i \in s_d} (f_d w_i y_i - \hat{Y}_d^{dir})^2
 $$
 
--   Option D: sampling is performed with replacement, but no sample weights nor domain sizes are considered. We calculate the estimator in the same way we did with Option B.
+-   Scenario D: we know that sampling was performed with replacement, but have no access to sample weights nor domain sizes. We calculate the estimator in the same way we did with Scenario B.
 
 $$
 \hat{Y}_d^{dir} = \frac{1}{n_d} \sum{i \in s_d} y_i 
@@ -195,19 +197,15 @@ $$
 \text{Var}(\hat{Y}_d^{dir}) = \frac{S{d}^2}{n_d}
 $$
 
-The option of choice will depend on data availability. If both domain sizes and weights are available, and we know that the survey took place without sample replacement, we can use Option A. If either the population sizes or the sample weights are missing, we will have to choose between options B, C, and D.
-
-Let's calculate the direct estimator considering sample weights, domain sizes, and no replacement.
+The scenario of choice will depend on data availability. Let's calculate the direct estimator assuming we have access to sample weights, domain sizes, and know the sampling was run without replacement.
 
 ```{r}
 # Clean and match sample population sizes
-smp_area_size_df <- data.frame(
+domsize_smp <- data.frame(
   district = names(pop_area_size),
   N = pop_area_size
 ) %>%
   filter(district %in% eusilcA_smp$district)
-
-# Domain size
 ```
 
 ```{r}
@@ -216,7 +214,7 @@ dir_est_a <- sae::direct(
   y = eusilcA_smp$eqIncome,
   dom = eusilcA_smp$district,
   sweight = eusilcA_smp$weight,
-  domsize = smp_area_size_df,
+  domsize = domsize_smp,
   replace = FALSE
 )
 
@@ -225,56 +223,20 @@ dir_est <- dir_est_a %>%
   mutate(Var = SD^2) %>% 
   dplyr::select("Domain","Direct","Var")
 
-head(dir_est_a)
+head(dir_est)
 ```
 
 ### Task – How would you estimate the alternative direct estimators?
 
-```{r}
-# # Option B -- No replacement, with domain sizes, no weights
-# dir_est_b <- sae::direct(
-#   y = eusilcA_smp$eqIncome,
-#   dom = eusilcA_smp$district,
-#   domsize = smp_area_size_df,
-#   replace = FALSE
-# )
-# 
-# # Option C -- With replacement, weights and domain sizes
-# dir_est_c <- sae::direct(
-#   y = eusilcA_smp$eqIncome,
-#   dom = eusilcA_smp$district,
-#   sweight = eusilcA_smp$weight,
-#   domsize = smp_area_size_df,
-#   replace = TRUE
-# )
-# 
-# # Option D -- With replacement, no weights nor domain sizes
-# dir_est_d <- sae::direct(
-#   y = eusilcA_smp$eqIncome,
-#   dom = eusilcA_smp$district,
-#   replace = TRUE
-# )
-```
+Hint: You can use the same formula we used for Scenario A, but changing the parameters that refer to the different alternatives. You can always have a look at what each parameter in the function does, and see some examples by running `?sae::direct()`.
 
-```{r, message=FALSE}
-# dir_est_comparison <- data.frame(
-#   Domain = dir_est_a$Domain,
-#   est_A = dir_est_a$Direct,
-#   est_B = dir_est_b$Direct,
-#   est_C = dir_est_c$Direct,
-#   est_D = dir_est_d$Direct,
-#   
-#   var_A = dir_est_a$SD^2,
-#   var_B = dir_est_b$SD^2,
-#   var_C = dir_est_c$SD^2,
-#   var_D = dir_est_d$SD^2
-# )
-# 
-# # Plot comparison
-# ggpairs(
-#   data = dir_est_comparison[,-1]
-# ) +
-#   theme_ipsum()
+```{r}
+# Scenario B -- No replacement, with domain sizes, no weights
+
+# Scenario C -- With replacement, weights and domain sizes
+
+# Scenario D -- With replacement, no weights nor domain sizes
+
 ```
 
 Once we have calculated the direct estimates, we can plot them in a map. We see that there are gaps in our data. This relates to direct estimators only being able to produce estimates based on domain-data only. For domains where sample data has no observations, the direct estimator will not produce an estimate. Additionally, the estimates produced for those areas for which sample sizes are small, will not be accurate.
@@ -282,7 +244,7 @@ Once we have calculated the direct estimates, we can plot them in a map. We see 
 ```{r}
 # Create data frame
 dir_est_a_gdf <- merge(
-  dir_est_a, 
+  dir_est, 
   shape_austria_dis[,c("PB")], 
   by.x = "Domain",
   by.y = "PB") %>% 
@@ -300,7 +262,7 @@ ggplot() +
 
 ## Conclusion
 
-We have seen how the direct estimate can produce estimates with minimal information. However, these results can be unreliable when sample sizes are small, and they cannot even be produced if the domain of interest is not included in the sample. To solve this problem, we rely on model-based small area estimation methods.
+We have seen how the direct estimate can produce estimates with minimal information. However, these results can be unreliable when sample sizes are small for our domain of interest, and they cannot be calculated if the domain of interest is not included in the sample. To solve this problem, we rely on model-based small area estimation methods.
 
 # Model-based estimators
 
