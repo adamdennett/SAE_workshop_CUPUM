@@ -373,11 +373,13 @@ head(area_level_intercept)
 
 ### Fay-Herriot model with auxiliary information
 
-We can estimate a slightly more complex model by adding area-level covariates. The Fay-Herriot model will combine the direct estimates with area-level auxiliary data, in this case, the variable `cash`. The model is estimated as follows:
+We can estimate a slightly more complex model by adding area-level covariates. The Fay-Herriot model will combine the direct estimates with area-level auxiliary data, in this case, the variables `cash`, `unempl_ben` and `tax_adj`. The model is estimated as follows:
 
 $$
-\hat{Y}_i = \beta_0 + \beta_1 \cdot \text{cash}_i + \beta_2 \cdot \text{unempl_ben} + \beta_3 \cdot \text{tax_adj} + u_i + e_i
+\hat{Y}_i = \beta_0 + \beta_1 \cdot \text{cash}_i + \beta_2 \cdot \text{unempl\_ben} + \beta_3 \cdot \text{tax\_adj} + u_i + e_i
 $$
+
+
 
 ```{r}
 # Produce covariate matrix and scale the values
@@ -453,7 +455,7 @@ head(area_level_spatial)
 
 Now that all the area-level models have been estimated, we can compare the results. For all three models, we observe high correlation of the estimates
 
-```{r, message=FALSE}
+```{r, message=FALSE, fig.width=10, fig.height=8}
 # Prepare data for model comparison
 area_level_summer_est <- data.frame(
   Domain = area_level_intercept$domain,
@@ -521,11 +523,10 @@ area_level_long$Model <- factor(area_level_long$Model,
 # Map
 ggplot() +
   geom_sf(data = area_level_long, aes(fill = Estimate), col = NA) +
-  facet_wrap(~Model) +
+  facet_wrap(~Model, ncol = 1, nrow = 3) +
   theme_ipsum()
 ```
 
-</div>
 
 ```{r}
 # We can also compare the standard deviations
@@ -555,7 +556,7 @@ area_level_long <- area_level_summer_gdf %>%
 # Map
 ggplot() +
   geom_sf(data = area_level_long, aes(fill = Estimate), col = NA) +
-  facet_wrap(~Model) +
+  facet_wrap(~Model, nrow = 3, ncol = 1) +
   theme_ipsum()
 ```
 
@@ -603,7 +604,7 @@ Xunit_scaled <- eusilcA_smp2 %>%
 
 # Fit model
 fit <- smoothUnit(
-  formula = eqIncome ~ self_empl* + tax_adj,
+  formula = eqIncome ~ self_empl + tax_adj,
   domain = ~district,
   design = design,
   X.pop = Xunit_scaled,
@@ -624,53 +625,6 @@ unit_level <- fit$iid.model.est %>%
 head(unit_level)
 ```
 
-```{r}
-# # Use model_data
-# model_data <- eusilcA_smp2
-# model_data$id <- 1:nrow(model_data)
-# 
-# # Prepare covariates matrix
-# ## Unit-level covariates
-# X_cov <- model_data[, c("district", "eqIncome", "self_empl", "rent","weight")]
-# 
-# ## Add area-level covariates
-# X_cov <- merge(X_cov, eusilcA_popAgg[, c("Domain", "cash", "unempl_ben", "tax_adj")],
-#                by.x = "district", by.y = "Domain", all.y = TRUE)
-# 
-# # Scale all numeric variables
-# X_cov_scaled <- X_cov %>%
-#   mutate(across(where(is.numeric) & !matches("eqIncome"), ~ scale(.)[, 1]))
-# 
-# # Survey design
-# design <- svydesign(
-#   ids = ~id,
-#   weights = ~weight,
-#   data = X_cov_scaled
-# )
-# 
-# # Fit model
-# fit <- smoothUnit(
-#   formula = eqIncome ~ self_empl + tax_adj + cash + unempl_ben,
-#   domain = ~district,
-#   design = design,
-#   X.pop = X_cov_scaled
-# )
-# 
-# # Rescale estimates (optional — assumes you saved the original sd of eqIncome as sd1)
-# # If you want to rescale predictions to original units, you need the original sd
-# 
-# unit_level <- fit$iid.model.est %>%
-#   mutate(
-#     mean   = mean * sd1,
-#     median = median * sd1,
-#     lower  = lower * sd1,
-#     upper  = upper * sd1,
-#     var    = var * sd1^2,
-#     se     = sqrt(var)
-#   )
-# 
-# head(unit_level)
-```
 
 # Frequentist approach
 
@@ -784,7 +738,7 @@ head(fh_area_level_covariates)
 
 ### Compare models
 
-```{r}
+```{r, fig.width=10, fig.height=8}
 # Make sure both dfs are in the same order
 identical(fh_area_level_intercept$Domain, fh_area_level_covariates$Domain)
 
@@ -808,6 +762,9 @@ ggpairs(
   theme_ipsum()
 ```
 
-# Key takeaways
 
--   
+
+
+
+
+
