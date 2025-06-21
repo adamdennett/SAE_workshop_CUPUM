@@ -496,7 +496,7 @@ ggpairs(
 
 We can also map the outputs of the different models. We observe high agreement between the auxiliary data and the spatial model, with very similar estimated values. These results differ from the intercept-only model, where we observe less variability in the outputs.
 
-```{r}
+```{r, message=FALSE, fig.width=8, fig.height=12}
 # Add geometry
 area_level_summer_gdf <- merge(
   area_level_summer_est,
@@ -526,19 +526,17 @@ ggplot() +
   facet_wrap(~Model, ncol = 1, nrow = 3) +
   theme_ipsum()
 ```
-
-
-```{r}
-# We can also compare the standard deviations
-area_level_summer_est_sd <- data.frame(
+```{r, fig.width=8, fig.height=12}
+area_level_summer_sd <- data.frame(
   Domain = area_level_intercept$domain,
   Intercept_model_sd = sqrt(area_level_intercept$var),
   Covariates_model_sd = sqrt(area_level_covariates$var),
-  Spatial_model_sd = sqrt(area_level_spatial$var))
-  
+  Spatial_model_sd = sqrt(area_level_spatial$var)
+)
+
 # Add geometry
 area_level_summer_gdf <- merge(
-  area_level_summer_est_sd,
+  area_level_summer_sd,
   shape_austria_dis[,c("PB")],
   by.x = "Domain",
   by.y = "PB"
@@ -546,19 +544,27 @@ area_level_summer_gdf <- merge(
   st_as_sf()
 
 # Make data long
-area_level_long <- area_level_summer_gdf %>%
+area_level_long_sd <- area_level_summer_gdf %>%
   pivot_longer(
     cols = c(Intercept_model_sd, Covariates_model_sd, Spatial_model_sd),
     names_to = "Model",
-    values_to = "Estimate"
+    values_to = "SD"
   )
 
-# Map
+# Order the models by increasing complexity
+area_level_long_sd$Model <- factor(area_level_long_sd$Model,
+                                   levels = c("Intercept_model_sd",
+                                              "Covariates_model_sd",
+                                              "Spatial_model_sd"))
+
+# Map SDs
 ggplot() +
-  geom_sf(data = area_level_long, aes(fill = Estimate), col = NA) +
-  facet_wrap(~Model, nrow = 3, ncol = 1) +
+  geom_sf(data = area_level_long_sd, aes(fill = SD), col = NA) +
+  facet_wrap(~Model, ncol = 1, nrow = 3) +
+  labs(title = "Standard Deviation of Estimates by Model") +
   theme_ipsum()
 ```
+
 
 ## Unit-level model
 

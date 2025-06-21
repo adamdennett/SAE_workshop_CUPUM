@@ -530,20 +530,20 @@ dir_est, :</code></pre>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co"># See results</span></span>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_intercept)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               domain     mean   median      var     lower    upper
-1           Amstetten 16325.37 16327.81  5255584 11940.626 20363.68
-2               Baden 20072.79 20047.41  6270441 15759.826 25466.49
-3             Bludenz 14066.59 14209.55  5287145  9217.279 18321.29
-4      Braunau am Inn 14135.59 14280.16  3560058 10088.901 17631.38
-5             Bregenz 21757.78 21691.57 12969335 15010.542 28177.25
-6 Bruck an der Leitha 19828.53 19840.07  7242184 14843.555 25723.74
+<pre><code>               domain     mean   median     var    lower    upper
+1           Amstetten 15958.59 15973.11 4045706 11865.63 19469.93
+2               Baden 20112.49 20003.81 5737457 16018.40 24556.59
+3             Bludenz 14445.23 14493.42 4625062 10099.05 18285.40
+4      Braunau am Inn 13985.73 14061.40 3622852 10318.77 17534.38
+5             Bregenz 21728.01 21539.99 9747280 16506.97 27972.88
+6 Bruck an der Leitha 19969.22 19569.37 8027025 14978.12 25702.63
                  method       se
-1 Area level model: IID 2292.506
-2 Area level model: IID 2504.085
-3 Area level model: IID 2299.379
-4 Area level model: IID 1886.812
-5 Area level model: IID 3601.296
-6 Area level model: IID 2691.131</code></pre>
+1 Area level model: IID 2011.394
+2 Area level model: IID 2395.299
+3 Area level model: IID 2150.596
+4 Area level model: IID 1903.379
+5 Area level model: IID 3122.063
+6 Area level model: IID 2833.200</code></pre>
 </div>
 </div>
 </section>
@@ -593,19 +593,19 @@ Generating estimates for all domains in X.domain.</code></pre>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_covariates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               domain     mean   median       var    lower    upper
-1           Amstetten 13087.42 13113.90  704366.6 11193.23 14594.39
-2               Baden 20202.07 20175.04 1016180.4 18314.86 22410.61
-3             Bludenz 12649.78 12678.81 1045121.7 10475.73 14524.23
-4      Braunau am Inn 12184.06 12234.40  628365.3 10708.60 13667.32
-5             Bregenz 30622.38 30605.61 3411374.0 27396.43 34128.87
-6 Bruck an der Leitha 22509.28 22531.87 1513405.4 19989.97 25008.42
+1           Amstetten 13000.22 13024.42  897980.1 11255.25 14662.69
+2               Baden 20207.76 20206.77  957209.8 18189.13 22090.35
+3             Bludenz 12539.00 12490.45 1193680.4 10413.55 14389.35
+4      Braunau am Inn 12148.09 12155.99  709674.1 10422.70 13612.64
+5             Bregenz 30879.98 31006.56 2613576.2 27596.55 33963.90
+6 Bruck an der Leitha 22293.55 22268.43 1652695.9 19965.73 24658.08
                  method        se
-1 Area level model: IID  839.2655
-2 Area level model: IID 1008.0577
-3 Area level model: IID 1022.3119
-4 Area level model: IID  792.6950
-5 Area level model: IID 1846.9905
-6 Area level model: IID 1230.2054</code></pre>
+1 Area level model: IID  947.6181
+2 Area level model: IID  978.3710
+3 Area level model: IID 1092.5568
+4 Area level model: IID  842.4216
+5 Area level model: IID 1616.6559
+6 Area level model: IID 1285.5722</code></pre>
 </div>
 </div>
 </section>
@@ -649,19 +649,19 @@ Generating estimates for all domains in X.domain.</code></pre>
 <span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(area_level_spatial)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               domain     mean   median       var     lower    upper
-1           Amstetten 13083.20 13085.47  651593.2 11554.875 14787.43
-2               Baden 20137.21 20062.81  964315.6 18363.726 22068.45
-3             Bludenz 12396.82 12368.26 1534652.0  9975.677 14699.08
-4      Braunau am Inn 12137.10 12214.69  678501.7 10247.750 13507.32
-5             Bregenz 30539.08 30441.30 3159589.4 27284.027 34228.56
-6 Bruck an der Leitha 22468.26 22497.30 1915093.0 19703.989 24921.16
+1           Amstetten 13046.44 12994.11  880133.9 11286.577 14861.68
+2               Baden 20257.17 20213.24  902048.9 18571.121 21918.56
+3             Bludenz 12464.06 12569.03 1360543.3  9905.172 14390.63
+4      Braunau am Inn 12212.37 12184.97  836177.9 10277.877 14017.10
+5             Bregenz 30559.22 30593.65 3785877.9 26741.062 34344.07
+6 Bruck an der Leitha 22434.83 22492.23 1680808.4 19871.299 25023.89
                   method        se
-1 Area level model: BYM2  807.2132
-2 Area level model: BYM2  981.9957
-3 Area level model: BYM2 1238.8107
-4 Area level model: BYM2  823.7121
-5 Area level model: BYM2 1777.5234
-6 Area level model: BYM2 1383.8689</code></pre>
+1 Area level model: BYM2  938.1545
+2 Area level model: BYM2  949.7626
+3 Area level model: BYM2 1166.4233
+4 Area level model: BYM2  914.4276
+5 Area level model: BYM2 1945.7333
+6 Area level model: BYM2 1296.4600</code></pre>
 </div>
 </div>
 </section>
@@ -751,22 +751,22 @@ Generating estimates for all domains in X.domain.</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># We can also compare the standard deviations</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>area_level_summer_est_sd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Domain =</span> area_level_intercept<span class="sc">$</span>domain,</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Intercept_model_sd =</span> <span class="fu">sqrt</span>(area_level_intercept<span class="sc">$</span>var),</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Covariates_model_sd =</span> <span class="fu">sqrt</span>(area_level_covariates<span class="sc">$</span>var),</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Spatial_model_sd =</span> <span class="fu">sqrt</span>(area_level_spatial<span class="sc">$</span>var))</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>area_level_summer_sd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Domain =</span> area_level_intercept<span class="sc">$</span>domain,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Intercept_model_sd =</span> <span class="fu">sqrt</span>(area_level_intercept<span class="sc">$</span>var),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Covariates_model_sd =</span> <span class="fu">sqrt</span>(area_level_covariates<span class="sc">$</span>var),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Spatial_model_sd =</span> <span class="fu">sqrt</span>(area_level_spatial<span class="sc">$</span>var)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Add geometry</span></span>
 <span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>area_level_summer_gdf <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  area_level_summer_est_sd,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  area_level_summer_sd,</span>
 <span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  shape_austria_dis[,<span class="fu">c</span>(<span class="st">"PB"</span>)],</span>
 <span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">"Domain"</span>,</span>
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">"PB"</span></span>
@@ -774,22 +774,29 @@ Generating estimates for all domains in X.domain.</code></pre>
 <span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>()</span>
 <span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Make data long</span></span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>area_level_long <span class="ot">&lt;-</span> area_level_summer_gdf <span class="sc">%&gt;%</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>area_level_long_sd <span class="ot">&lt;-</span> area_level_summer_gdf <span class="sc">%&gt;%</span></span>
 <span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(Intercept_model_sd, Covariates_model_sd, Spatial_model_sd),</span>
 <span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"Model"</span>,</span>
-<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"Estimate"</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"SD"</span></span>
 <span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Map</span></span>
-<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> area_level_long, <span class="fu">aes</span>(<span class="at">fill =</span> Estimate), <span class="at">col =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Model, <span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">ncol =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ipsum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Order the models by increasing complexity</span></span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>area_level_long_sd<span class="sc">$</span>Model <span class="ot">&lt;-</span> <span class="fu">factor</span>(area_level_long_sd<span class="sc">$</span>Model,</span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Intercept_model_sd"</span>,</span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>                                              <span class="st">"Covariates_model_sd"</span>,</span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>                                              <span class="st">"Spatial_model_sd"</span>))</span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Map SDs</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> area_level_long_sd, <span class="fu">aes</span>(<span class="at">fill =</span> SD), <span class="at">col =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Model, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">nrow =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Standard Deviation of Estimates by Model"</span>) <span class="sc">+</span></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ipsum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
@@ -856,19 +863,19 @@ y_{id} = \mathbf{x}_{id}^\top \boldsymbol{\beta} + u_d + \epsilon_{id}
 <span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(unit_level)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                domain     mean   median     var     lower    upper
-3            Amstetten 14847.64 14789.78 1992558 12259.925 17679.30
-4                Baden 22403.02 22380.96 1369828 20274.168 24675.57
-67             Bludenz 12463.96 12550.24 3982874  8456.855 16136.31
-39      Braunau am Inn 12195.80 12256.86 1772661  9666.628 14851.24
-68             Bregenz 34834.12 34809.52 1819903 32419.717 37655.24
-5  Bruck an der Leitha 22490.11 22606.18 2439930 19372.425 25431.52
+3            Amstetten 14783.30 14740.68 1909035 11958.925 17449.15
+4                Baden 22322.08 22333.54 1706909 19955.355 24775.30
+67             Bludenz 12363.51 12325.40 3382785  8848.686 15853.83
+39      Braunau am Inn 12138.39 12229.65 2143186  9350.874 15056.62
+68             Bregenz 34973.66 35067.99 2058260 32154.152 37769.58
+5  Bruck an der Leitha 22319.25 22399.21 2277440 19340.347 25171.52
                   method       se
-3  Unit level model: IID 1411.580
-4  Unit level model: IID 1170.396
-67 Unit level model: IID 1995.714
-39 Unit level model: IID 1331.413
-68 Unit level model: IID 1349.038
-5  Unit level model: IID 1562.027</code></pre>
+3  Unit level model: IID 1381.678
+4  Unit level model: IID 1306.487
+67 Unit level model: IID 1839.235
+39 Unit level model: IID 1463.963
+68 Unit level model: IID 1434.664
+5  Unit level model: IID 1509.119</code></pre>
 </div>
 </div>
 </section>
