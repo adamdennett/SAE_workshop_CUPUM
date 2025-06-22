@@ -145,8 +145,6 @@ where $N_d$ is the population at the domain of interest $d$; $s_d$ is the set of
 
 From our survey, we know that the `weights` column represent the survey weights, and that sampling was done without replacement. This information can usually be found in the documentation of the survey, together with any clusters or strata that might have been defined by the surveyors. Additionally, we need the total population sizes for each domain in the sample.
 
-
-
 -   Scenario A: We have access for both sampling weights and domain sizes, and from the survey design we know that sampling was performed without replacement. In this case, the direct estimator is calculated as follows:
 
 $$
@@ -379,8 +377,6 @@ $$
 \hat{Y}_i = \beta_0 + \beta_1 \cdot \text{cash}_i + \beta_2 \cdot \text{unempl\_ben} + \beta_3 \cdot \text{tax\_adj} + u_i + e_i
 $$
 
-
-
 ```{r}
 # Produce covariate matrix and scale the values
 # Define covariates
@@ -526,6 +522,7 @@ ggplot() +
   facet_wrap(~Model, ncol = 1, nrow = 3) +
   theme_ipsum()
 ```
+
 ```{r, fig.width=8, fig.height=12}
 area_level_summer_sd <- data.frame(
   Domain = area_level_intercept$domain,
@@ -565,7 +562,6 @@ ggplot() +
   theme_ipsum()
 ```
 
-
 ## Unit-level model
 
 The last model we will explore in this practical is the unit-level model. This model incorporates both area and unit-level covariates to improve the performance of our estimator.
@@ -601,24 +597,34 @@ design <- svydesign(
 
 # Unit level covariates
 # Select unit-level covariates
-covariates <- c("self_empl", "tax_adj")
+covariates <- c("cash", "unempl_ben", "tax_adj")
 
 # Then proceed with scaling the covariates
 Xunit_scaled <- eusilcA_smp2 %>%
   dplyr::select(district = district, all_of(covariates)) %>%
   mutate(across(all_of(covariates), ~ . / sd(.)))
 
+# Adjacency matrix with only in-sample domains
+# Get the unique districts from the sample data
+valid_districts <- unique(eusilcA_smp$district)
+
+# Subset the proximity matrix to only in-sample domains
+eusilcA_prox_filtered <- eusilcA_prox[rownames(eusilcA_prox) %in% valid_districts, 
+                                      colnames(eusilcA_prox) %in% valid_districts]
+
+
 # Fit model
 fit <- smoothUnit(
-  formula = eqIncome ~ self_empl + tax_adj,
+  formula = eqIncome ~ cash + unempl_ben + tax_adj,
   domain = ~district,
   design = design,
+  adj.mat = eusilcA_prox_filtered,
   X.pop = Xunit_scaled,
   domain.size = domsize
 )
 
 # Estimates
-unit_level <- fit$iid.model.est %>%
+unit_level <- fit$bym2.model.est %>%
   mutate(
     mean   = mean * sd1,
     median = median * sd1,
@@ -630,7 +636,6 @@ unit_level <- fit$iid.model.est %>%
 
 head(unit_level)
 ```
-
 
 # Frequentist approach
 
@@ -767,10 +772,3 @@ ggpairs(
 ) +
   theme_ipsum()
 ```
-
-
-
-
-
-
-
