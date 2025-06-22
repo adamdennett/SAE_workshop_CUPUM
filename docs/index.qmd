@@ -572,9 +572,12 @@ The correlation plots show how agreement between true values and estimates incre
 
 ```{r, fig.width=8, fig.height=12}
 # True values from population
-true_values <- eusilcA_pop %>% 
-  group_by(district) %>% 
-  summarise(true_income = mean(eqIncome))
+true_values <- eusilcA_pop %>%
+  group_by(district) %>%
+  summarise(
+    true_income = mean(eqIncome, na.rm = TRUE)
+  )
+
 
 # Prepare model estimates
 cov <- area_level_covariates %>%
@@ -597,26 +600,29 @@ merged_df <- list(true_values, cov, int, spa) %>%
 int_vs_true <- ggplot(merged_df) +
   geom_point(aes(x = true_income, y = int_mean)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  scale_color_viridis_c() +
   labs(x = "True eqIncome", y = "Intercept-only estimate") +
   theme_minimal()
 
 cov_vs_true <- ggplot(merged_df) +
   geom_point(aes(x = true_income, y = cov_mean)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+    scale_color_viridis_c() +
   labs(x = "True eqIncome", y = "Covariates model estimate") +
   theme_minimal()
 
 spa_vs_true <- ggplot(merged_df) +
   geom_point(aes(x = true_income, y = spa_mean)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  scale_color_viridis_c() +
   labs(x = "True eqIncome", y = "Spatial model estimate") +
   theme_minimal()
 
-# Combine plots
-(int_vs_true) /
+# Combine plots and visualise
+((int_vs_true) /
 (cov_vs_true) /
 (spa_vs_true)
-
+)
 ```
 
 
