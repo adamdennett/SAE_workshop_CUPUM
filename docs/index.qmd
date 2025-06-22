@@ -570,7 +570,7 @@ Something we can do in this practical is compare how our estimates compare to th
 
 The correlation plots show how agreement between true values and estimates increases as model complexity also increases. This is in line with what we saw in the theoretical part of this workshop --more sophisticated models will result in more precise estimates. 
 
-```{r}
+```{r, fig.width=8, fig.height=12}
 # True values from population
 true_values <- eusilcA_pop %>% 
   group_by(district) %>% 
@@ -613,7 +613,9 @@ spa_vs_true <- ggplot(merged_df) +
   theme_minimal()
 
 # Combine plots
-(int_vs_true | cov_vs_true | spa_vs_true)
+(int_vs_true) /
+(cov_vs_true) /
+(spa_vs_true)
 
 ```
 
