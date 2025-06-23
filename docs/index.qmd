@@ -568,7 +568,7 @@ ggplot() +
 
 Something we can do in this practical is compare how our estimates compare to the true population ones provided in the `eusilcA_pop` data frame. Although we cannot perform this exercise in real life, since we will not have access to the true population values, we can run it here to illustrate how different models improve our estimates.
 
-The correlation plots show how agreement between true values and estimates increases as model complexity also increases. This is in line with what we saw in the theoretical part of this workshop --more sophisticated models will result in more precise estimates. 
+The correlation plots show how agreement between true values and estimates increases as model complexity also increases. This is in line with what we saw in the theoretical part of this workshop --more sophisticated models will result in more precise estimates.
 
 ```{r, fig.width=8, fig.height=12}
 # True values from population
@@ -624,7 +624,6 @@ spa_vs_true <- ggplot(merged_df) +
 (spa_vs_true)
 )
 ```
-
 
 ## Unit-level model
 
@@ -763,7 +762,7 @@ head(fh_area_level_intercept)
 
 ### Fay-Herriot model with auxiliary variables
 
-To make the model more sophisticated, we can add area-level covariates. In this example we add a single area-level covariate, `cash`. The process mirrors the intercept-only model, but now we let our estimates vary with the covariate variable. Similarly, for within-sample domains we compute the EBLUP and RMSE, and for out-of-sample domains we manually compute the synthetic estimates by plugging the out-of-sample covariate values into the model. 
+To make the model more sophisticated, we can add area-level covariates. In this example we add a single area-level covariate, `cash`. The process mirrors the intercept-only model, but now we let our estimates vary with the covariate variable. Similarly, for within-sample domains we compute the EBLUP and RMSE, and for out-of-sample domains we manually compute the synthetic estimates by plugging the out-of-sample covariate values into the model.
 
 ```{r}
 # Add more covariates
@@ -819,7 +818,7 @@ head(fh_area_level_covariates)
 
 ### Compare models
 
-To compare both models, we create a pairwise correlation plot. First, we compare the estimates produced by both models, and observe there is good agreement between them. For out-of-sample domains, we calculated this synthetically, using the model's intercept as a reference. The RMSE is a metric to evaluate the accuracy of a model that compares the model's predictions with the observed values. We see that precision increases for the model including covariates, which suggests that this model performs better than the intercept-only one, as it is expected. 
+To compare both models, we create a pairwise correlation plot. First, we compare the estimates produced by both models, and observe there is good agreement between them. For out-of-sample domains, we calculated this synthetically, using the model's intercept as a reference. The RMSE is a metric to evaluate the accuracy of a model that compares the model's predictions with the observed values. We see that precision increases for the model including covariates, which suggests that this model performs better than the intercept-only one, as it is expected.
 
 ```{r, fig.width=10, fig.height=8}
 # Make sure both dfs are in the same order
@@ -850,7 +849,3 @@ ggplot(data = fh_comparison) +
   geom_abline(slope = 1, intercept = 0) +
   theme_minimal()
 ```
-
-
-
-

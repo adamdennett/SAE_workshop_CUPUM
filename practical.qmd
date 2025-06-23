@@ -30,7 +30,7 @@ Please, make sure you have `R version 4.5.1 (2025-06-13)` installed in your lapt
 required_packages <- c(
   "sae", "emdi", "saeTrafo", "hbsae", "SUMMER", "survey",
   "dplyr", "tidyr", "purrr", "sf", 
-  "ggplot2", "hrbrthemes", "GGally"
+  "ggplot2", "hrbrthemes", "GGally", "patchwork"
 )
 
 to_install <- setdiff(required_packages, rownames(installed.packages()))
@@ -38,6 +38,7 @@ if (length(to_install) > 0) {
   install.packages(to_install)
 }
 
+# Install INLA for Bayesian SAE estimators
 if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
   install.packages("INLA", repos=c(getOption("repos"), 
                   INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
@@ -56,17 +57,18 @@ library(sf)           # For mapping
 library(ggplot2)      # For visualisations
 library(hrbrthemes)   # For visualisations
 library(GGally)       # For visualisations
+library(patchwork)    # For visualisations
 ```
 
 # Introduction
 
-In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods.
+In this practical we will put into practice the concepts we learnt on the theoretical session of the workshop. Using survey data, we will calculate direct and model-based income estimators. We will explore the different alternatives available when implementing these methods, which will help us choose the most adequate option given data availability. To better understand the implications of using different models, we will compare the results of the estimates generated through different methods. You can access the `.qmd` document for this practical from [this link](https://github.com/cpeiretgarcia/SAE_workshop_CUPUM/blob/main/practical.qmd).
 
 # Data
 
 For this workshop we will be using the European Union Statistics on Income and Living Conditions (EU-SILC). Specifically, we will be using the Austrian EU-SILC data sets available through the `emdi` package. EU-SILC provides detailed information on attributes related to income, material deprivation, labour, housing, childcare, health, access to and use of services, and education.
 
-From the package `emdi` we can load a set of data related to the EU-SILC survey. `eusilcA_smp` is the random independent sample, where each row represents one individuas, and each column represents a unit-level attribute. In total, the sample comprises 1,945 individuals. `eusilcA_popAgg` comprises the area-level covariates for all domains. `eusilcA_pop` is the total population -- it comprises 25,000 observations which we will assume add up to the total population of Austria for this example. Finally, `eusilcA_prox` is the adjacency matrix for every district in Austria.
+From the package `emdi` we can load a set of data related to the EU-SILC survey. `eusilcA_smp` is the random independent sample, where each row represents one individual, and each column represents a unit-level attribute. In total, the sample comprises 1,945 individuals. `eusilcA_popAgg` comprises the area-level covariates for all domains. `eusilcA_pop` is the total population -- it comprises 25,000 observations which we will assume add up to the total population of Austria for this example. Finally, `eusilcA_prox` is the adjacency matrix for every district in Austria.
 
 ```{r}
 # Load data
@@ -145,8 +147,6 @@ where $N_d$ is the population at the domain of interest $d$; $s_d$ is the set of
 
 From our survey, we know that the `weights` column represent the survey weights, and that sampling was done without replacement. This information can usually be found in the documentation of the survey, together with any clusters or strata that might have been defined by the surveyors. Additionally, we need the total population sizes for each domain in the sample.
 
-
-
 -   Scenario A: We have access for both sampling weights and domain sizes, and from the survey design we know that sampling was performed without replacement. In this case, the direct estimator is calculated as follows:
 
 $$
@@ -197,7 +197,7 @@ $$
 \text{Var}(\hat{Y}_d^{dir}) = \frac{S{d}^2}{n_d}
 $$
 
-The scenario of choice will depend on data availability. Let's calculate the direct estimator assuming we have access to sample weights, domain sizes, and know the sampling was run without replacement.
+The appropriate scenario depends on the availability of the data. Let's calculate the direct estimator assuming we have access to sample weights, domain sizes, and know the sampling was run without replacement.
 
 ```{r}
 # Clean and match sample population sizes
@@ -379,8 +379,6 @@ $$
 \hat{Y}_i = \beta_0 + \beta_1 \cdot \text{cash}_i + \beta_2 \cdot \text{unempl\_ben} + \beta_3 \cdot \text{tax\_adj} + u_i + e_i
 $$
 
-
-
 ```{r}
 # Produce covariate matrix and scale the values
 # Define covariates
@@ -496,7 +494,7 @@ ggpairs(
 
 We can also map the outputs of the different models. We observe high agreement between the auxiliary data and the spatial model, with very similar estimated values. These results differ from the intercept-only model, where we observe less variability in the outputs.
 
-```{r}
+```{r, message=FALSE, fig.width=8, fig.height=12}
 # Add geometry
 area_level_summer_gdf <- merge(
   area_level_summer_est,
@@ -527,18 +525,17 @@ ggplot() +
   theme_ipsum()
 ```
 
-
-```{r}
-# We can also compare the standard deviations
-area_level_summer_est_sd <- data.frame(
+```{r, fig.width=8, fig.height=12}
+area_level_summer_sd <- data.frame(
   Domain = area_level_intercept$domain,
   Intercept_model_sd = sqrt(area_level_intercept$var),
   Covariates_model_sd = sqrt(area_level_covariates$var),
-  Spatial_model_sd = sqrt(area_level_spatial$var))
-  
+  Spatial_model_sd = sqrt(area_level_spatial$var)
+)
+
 # Add geometry
 area_level_summer_gdf <- merge(
-  area_level_summer_est_sd,
+  area_level_summer_sd,
   shape_austria_dis[,c("PB")],
   by.x = "Domain",
   by.y = "PB"
@@ -546,18 +543,86 @@ area_level_summer_gdf <- merge(
   st_as_sf()
 
 # Make data long
-area_level_long <- area_level_summer_gdf %>%
+area_level_long_sd <- area_level_summer_gdf %>%
   pivot_longer(
     cols = c(Intercept_model_sd, Covariates_model_sd, Spatial_model_sd),
     names_to = "Model",
-    values_to = "Estimate"
+    values_to = "SD"
   )
 
-# Map
+# Order the models by increasing complexity
+area_level_long_sd$Model <- factor(area_level_long_sd$Model,
+                                   levels = c("Intercept_model_sd",
+                                              "Covariates_model_sd",
+                                              "Spatial_model_sd"))
+
+# Map SDs
 ggplot() +
-  geom_sf(data = area_level_long, aes(fill = Estimate), col = NA) +
-  facet_wrap(~Model, nrow = 3, ncol = 1) +
+  geom_sf(data = area_level_long_sd, aes(fill = SD), col = NA) +
+  facet_wrap(~Model, ncol = 1, nrow = 3) +
+  labs(title = "Standard Deviation of Estimates by Model") +
   theme_ipsum()
+```
+
+### Compare models with true data
+
+Something we can do in this practical is compare how our estimates compare to the true population ones provided in the `eusilcA_pop` data frame. Although we cannot perform this exercise in real life, since we will not have access to the true population values, we can run it here to illustrate how different models improve our estimates.
+
+The correlation plots show how agreement between true values and estimates increases as model complexity also increases. This is in line with what we saw in the theoretical part of this workshop --more sophisticated models will result in more precise estimates.
+
+```{r, fig.width=8, fig.height=12}
+# True values from population
+true_values <- eusilcA_pop %>%
+  group_by(district) %>%
+  summarise(
+    true_income = mean(eqIncome, na.rm = TRUE)
+  )
+
+
+# Prepare model estimates
+cov <- area_level_covariates %>%
+  rename(district = domain, cov_mean = mean) %>%
+  select(district, cov_mean)
+
+int <- area_level_intercept %>%
+  rename(district = domain, int_mean = mean) %>%
+  select(district, int_mean)
+
+spa <- area_level_spatial %>%
+  rename(district = domain, spa_mean = mean) %>%
+  select(district, spa_mean)
+
+# Merge everything into one data frame
+merged_df <- list(true_values, cov, int, spa) %>%
+  reduce(full_join, by = "district")
+
+# Create comparison plots
+int_vs_true <- ggplot(merged_df) +
+  geom_point(aes(x = true_income, y = int_mean)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  scale_color_viridis_c() +
+  labs(x = "True eqIncome", y = "Intercept-only estimate") +
+  theme_minimal()
+
+cov_vs_true <- ggplot(merged_df) +
+  geom_point(aes(x = true_income, y = cov_mean)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+    scale_color_viridis_c() +
+  labs(x = "True eqIncome", y = "Covariates model estimate") +
+  theme_minimal()
+
+spa_vs_true <- ggplot(merged_df) +
+  geom_point(aes(x = true_income, y = spa_mean)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  scale_color_viridis_c() +
+  labs(x = "True eqIncome", y = "Spatial model estimate") +
+  theme_minimal()
+
+# Combine plots and visualise
+((int_vs_true) /
+(cov_vs_true) /
+(spa_vs_true)
+)
 ```
 
 ## Unit-level model
@@ -595,24 +660,34 @@ design <- svydesign(
 
 # Unit level covariates
 # Select unit-level covariates
-covariates <- c("self_empl", "tax_adj")
+covariates <- c("cash", "unempl_ben", "tax_adj")
 
 # Then proceed with scaling the covariates
 Xunit_scaled <- eusilcA_smp2 %>%
   dplyr::select(district = district, all_of(covariates)) %>%
   mutate(across(all_of(covariates), ~ . / sd(.)))
 
+# Adjacency matrix with only in-sample domains
+# Get the unique districts from the sample data
+valid_districts <- unique(eusilcA_smp$district)
+
+# Subset the proximity matrix to only in-sample domains
+eusilcA_prox_filtered <- eusilcA_prox[rownames(eusilcA_prox) %in% valid_districts, 
+                                      colnames(eusilcA_prox) %in% valid_districts]
+
+
 # Fit model
 fit <- smoothUnit(
-  formula = eqIncome ~ self_empl + tax_adj,
+  formula = eqIncome ~ cash + unempl_ben + tax_adj,
   domain = ~district,
   design = design,
+  adj.mat = eusilcA_prox_filtered,
   X.pop = Xunit_scaled,
   domain.size = domsize
 )
 
 # Estimates
-unit_level <- fit$iid.model.est %>%
+unit_level <- fit$bym2.model.est %>%
   mutate(
     mean   = mean * sd1,
     median = median * sd1,
@@ -625,14 +700,17 @@ unit_level <- fit$iid.model.est %>%
 head(unit_level)
 ```
 
-
 # Frequentist approach
 
-Now that we have computed our Bayesian small area estimates, we can try using the frequentist approach. In this example, we will be using the functions available through the `sae` package. An important consideration when using this functions is that they do not directly predict the estimates for out-of-sample domains. We have to compute them manually using the estimates provided by our fitted models.
+Now that we have computed our Bayesian small area estimates, we can try using the frequentist approach. In this example, we will be using the functions available through the `sae` package. An important consideration when using this functions is that they do not directly predict the estimates for out-of-sample domains like `SUMMER`. We have to compute them manually using the estimates provided by our fitted models.
 
 ## Area-level Model
 
 ### Intercept-only model
+
+We begin by computing the direct estimates, using `sae::direct()` like we did in the Bayesian approach. This time, we use the function `sae::mseFH()` to estimate the Fay-Herriot model, in this case, just adding the intercept and no area-level covariates. This model assumes all domain-level means are drawn from a common distribution, centered on the intercept. The fitted model will give us the EBLUPs (Empirical Best Linear Unbiased Predictors) for sampled domains, and the RMSE (root mean squared errors) as a measure of uncertainty.
+
+Since the `sae` package does not automatically provide estimates for out-of-sample estimates, we generate synthetic estimates for those by using the model's intercept and its standard error.
 
 ```{r}
 # Direct estimator with untransformed data
@@ -683,6 +761,8 @@ head(fh_area_level_intercept)
 ```
 
 ### Fay-Herriot model with auxiliary variables
+
+To make the model more sophisticated, we can add area-level covariates. In this example we add a single area-level covariate, `cash`. The process mirrors the intercept-only model, but now we let our estimates vary with the covariate variable. Similarly, for within-sample domains we compute the EBLUP and RMSE, and for out-of-sample domains we manually compute the synthetic estimates by plugging the out-of-sample covariate values into the model.
 
 ```{r}
 # Add more covariates
@@ -738,6 +818,8 @@ head(fh_area_level_covariates)
 
 ### Compare models
 
+To compare both models, we create a pairwise correlation plot. First, we compare the estimates produced by both models, and observe there is good agreement between them. For out-of-sample domains, we calculated this synthetically, using the model's intercept as a reference. The RMSE is a metric to evaluate the accuracy of a model that compares the model's predictions with the observed values. We see that precision increases for the model including covariates, which suggests that this model performs better than the intercept-only one, as it is expected.
+
 ```{r, fig.width=10, fig.height=8}
 # Make sure both dfs are in the same order
 identical(fh_area_level_intercept$Domain, fh_area_level_covariates$Domain)
@@ -746,7 +828,9 @@ identical(fh_area_level_intercept$Domain, fh_area_level_covariates$Domain)
 fh_comparison <- data.frame(
   Domain = fh_area_level_intercept$Domain,
   Intercept_model_est = fh_area_level_intercept$Estimate,
-  Covariates_model_est = fh_area_level_covariates$Final_Estimate
+  Covariates_model_est = fh_area_level_covariates$Final_Estimate,
+  Intercept_model_rmse = fh_area_level_intercept$RMSE,
+  Covariates_model_rmse = fh_area_level_covariates$Final_RMSE
 )
 
 # Flag out-of-sample domains
@@ -754,17 +838,14 @@ oos <- setdiff(eusilcA_pop$district,eusilcA_smp$district)
 fh_comparison <- fh_comparison %>%
   mutate(sample_status = if_else(Domain %in% oos, "out-of-sample", "in-sample"))
 
-# Plot
-ggpairs(
-  data = fh_comparison[,-1],
-  aes(color = sample_status)
-) +
-  theme_ipsum()
+# Compare estimates
+ggplot(data = fh_comparison) +
+  geom_point(aes(x = Intercept_model_est, y = Covariates_model_est, col = sample_status)) +
+  theme_minimal()
+
+# Compare RMSEs
+ggplot(data = fh_comparison) +
+  geom_point(aes(x = Intercept_model_rmse, y = Covariates_model_rmse, col = sample_status)) +
+  geom_abline(slope = 1, intercept = 0) +
+  theme_minimal()
 ```
-
-
-
-
-
-
-
