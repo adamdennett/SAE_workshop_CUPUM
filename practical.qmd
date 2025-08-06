@@ -49,7 +49,6 @@ library(emdi)         # Example datasets
 library(saeTrafo)     # For domain sizes
 library(SUMMER)       # Bayesian SAE
 library(survey)       # Survey designs
-
 library(dplyr)        # For data wrangling
 library(tidyr)        # For data wrangling
 library(purrr)        # For data wrangling
@@ -75,35 +74,474 @@ From the package `emdi` we can load a set of data related to the EU-SILC survey.
 data("eusilcA_smp")     # Random independent Sample
 data("eusilcA_popAgg")  # Aggregated covariates at district level
 data("eusilcA_pop")     # Population level data
-data("eusilcA_prox")    # Adjacency matrix
+data("eusilcA_prox")    #Adjacency matrix
+data("eusilcA_smpAgg")  #AD ADD THIS IN
+
+str(eusilcA_smp)
+str(eusilcA_popAgg)
+str(eusilcA_pop)
+str(eusilcA_prox)
+str(eusilcA_smpAgg)
+
+set.seed(123)  # Optional: ensures reproducibility
+
+#########Create some Alternative Samples##########
+
+#create a second simple random sample from the population
+eusilcA_smp2 <- eusilcA_pop %>%
+  sample_n(size = 1945)
+
+#create a third sample - an alternative stratified sample
+
+# Step 1: Count population per district
+pop_counts <- eusilcA_pop %>%
+  count(district, name = "pop_n")
+
+# Step 2: Define total sample size
+total_sample_size <- 1945  # adjust as needed - match it to the sample size of the first sample
+
+# Step 3: Allocate sample size proportionally
+pop_counts <- pop_counts %>%
+  mutate(sample_n = round(pop_n / sum(pop_n) * total_sample_size))
+
+# Step 4: Stratified sampling
+set.seed(123)  # for reproducibility
+stratified_samples <- pop_counts %>%
+  rowwise() %>%
+  mutate(sample = list(
+    eusilcA_pop %>%
+      filter(district == district) %>%
+      slice_sample(n = sample_n) # this is a cool function which allows you to subset rows according to the position defined in sample_n
+  ))
+
+# Step 5: Unnest with name repair - stratified samples just selects samples from each district, but does not unnest them
+eusilcA_smp3 <- stratified_samples %>%
+  unnest(sample, names_repair = "unique")
+
+# Step 6: Clean up column names
+eusilcA_smp3 <- eusilcA_smp3 %>%
+  rename(district = district...1) %>%
+  select(-matches("district\\.\\.\\.\\d+$"))  # drops district...20 etc.
+
+# Step 7: Add sampling weights
+eusilcA_smp3 <- eusilcA_smp3 %>%
+  mutate(weight = pop_n / sample_n) 
+
 
 # Recode the domain variable as character
-eusilcA_smp$district <- droplevels(eusilcA_smp$district)
-eusilcA_smp$district <- as.character(eusilcA_smp$district)
+#eusilcA_smp$district <- droplevels(eusilcA_smp$district)
+#eusilcA_smp$district <- as.character(eusilcA_smp$district)
 ```
 
-Let us start by having a look at the sample data `eusilcA_smp`. Each row in the sample represents one individual, and for each of them we have information on a wide range of economic and demographic attributes. In this practical, our **target variable** will be the the equivalised household income (`eqIncome`), which represents the household income adjusted by household composition characteristics.
+
+
+Let us start by having a look at the first set of sample data `eusilcA_smp`. Each row in the sample represents one case - an individual, or in our case, a household reference person. And for each of them we have information on a wide range of economic and demographic attributes. In this practical, our **target variable** will be the the equivalised household income (`eqIncome`), which represents the household income adjusted by household composition characteristics.
 
 ```{r}
 head(eusilcA_smp)
 ```
 
-We can also have a look at the spatial distribution of the observations in the sample.
+We can also have a look at the spatial distribution of the observations in the samples.
 
 ```{r}
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(leaflet)
+library(sf)
+
 # Load geospatial data and set CRS
 load_shapeaustria()
-shape_austria_dis <- st_set_crs(shape_austria_dis, 4326) # Set CRS
+shape_austria_dis <- st_set_crs(shape_austria_dis, 4326)
 
-# Map observations per district
-n_sample <- shape_austria_dis %>% bind_cols(n = eusilcA_smpAgg[,c("n")])
-ggplot() +
-  geom_sf(data = n_sample, aes(fill = n), col = NA) +
-  scale_fill_viridis_b() +
+# Function to summarize sample by district and join to spatial data
+summarize_sample <- function(sample_df, shape_df) {
+  sample_df %>%
+    group_by(district) %>%
+    summarise(n = n(), .groups = "drop") %>%
+    left_join(shape_df, by = c("district" = "PB")) %>%
+    st_as_sf()
+}
+
+# Prepare summaries for each sample
+smp1_map <- shape_austria_dis %>%
+  left_join(eusilcA_smp %>% count(district, name = "n"), by = c("PB" = "district"))
+
+smp2_map <- shape_austria_dis %>%
+  left_join(eusilcA_smp2 %>% count(district, name = "n"), by = c("PB" = "district"))
+
+smp3_map <- shape_austria_dis %>%
+  left_join(eusilcA_smp3 %>% count(district, name = "n"), by = c("PB" = "district"))
+
+# City labels
+city_coords <- data.frame(
+  name = c("Wien", "Graz", "Murau"),
+  lon = c(16.3738, 15.4395, 14.1700),
+  lat = c(48.2082, 47.0707, 47.1147)
+)
+city_points <- st_as_sf(city_coords, coords = c("lon", "lat"), crs = 4326)
+
+# Color palette
+pal <- colorNumeric("viridis", domain = NULL)
+
+# Build leaflet map with layers
+leaflet() %>%
+  addTiles() %>%
+  
+  # Sample 1 layer
+  addPolygons(
+    data = smp1_map,
+    fillColor = ~pal(n),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    label = ~paste0(PB, ": ", n, " obs"),
+    group = "Sample 1"
+  ) %>%
+  
+  # Sample 2 layer
+  addPolygons(
+    data = smp2_map,
+    fillColor = ~pal(n),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    label = ~paste0(PB, ": ", n, " obs"),
+    group = "Sample 2"
+  ) %>%
+  
+  # Sample 3 layer
+  addPolygons(
+    data = smp3_map,
+    fillColor = ~pal(n),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    label = ~paste0(PB, ": ", n, " obs"),
+    group = "Sample 3"
+  ) %>%
+  
+  # City labels
+  addLabelOnlyMarkers(
+    data = city_points,
+    label = ~name,
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "top",
+      textOnly = TRUE,
+      style = list(
+        "color" = "white",
+        "font-weight" = "bold",
+        "text-shadow" = "1px 1px 2px black"
+      )
+    )
+  ) %>%
+  
+  # Legend
+  addLegend(
+    pal = pal,
+    values = c(smp1_map$n, smp2_map$n, smp3_map$n),
+    title = "Sample Size",
+    position = "bottomright"
+  ) %>%
+  
+  # Layer control
+  addLayersControl(
+    overlayGroups = c("Sample 1", "Sample 2", "Sample 3"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Tag each sample
+df1 <- eusilcA_smp %>% mutate(source = "eusilcA_smp")
+df2 <- eusilcA_smp2 %>% mutate(source = "eusilcA_smp2")
+df3 <- eusilcA_smp3 %>% mutate(source = "eusilcA_smp3")
+
+# Compute district order based on eusilcA_smp
+district_order <- df1 %>%
+  count(district) %>%
+  arrange(n) %>%
+  pull(district)
+
+# Combine and reorder factor levels
+combined_df <- bind_rows(df1, df2, df3) %>%
+  mutate(district = factor(district, levels = district_order))
+
+# Plot
+ggplot(combined_df, aes(x = district, fill = source)) +
+  geom_bar(position = "dodge") +
+  coord_flip() +
   labs(
-    title = "Number of observations per district"
+    title = "District Counts in Sampled Dataframes",
+    subtitle = "Comparison of Sampling Strategies",
+    x = "District",
+    y = "Count",
+    fill = "Sample Source"
   ) +
-  theme_void()
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 7),
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "top"
+  )
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Combine all four datasets with source labels
+df_lienz_all <- bind_rows(
+  eusilcA_pop %>% mutate(source = "Population"),
+  eusilcA_smp %>% mutate(source = "Sample 1"),
+  eusilcA_smp2 %>% mutate(source = "Sample 2"),
+  eusilcA_smp3 %>% mutate(source = "Sample 3")
+) %>%
+  filter(district == "Lienz")
+
+# Compute variance for each source
+var_summary_all <- df_lienz_all %>%
+  group_by(source) %>%
+  summarise(variance = var(eqIncome, na.rm = TRUE))
+
+# Plot
+ggplot(df_lienz_all, aes(x = source, y = eqIncome, fill = source)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.3, color = "black") +
+  labs(
+    title = "eqIncome Distribution in Lienz: Population vs Samples",
+    x = "Data Source",
+    y = "eqIncome"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "none"
+  ) +
+  geom_text(
+    data = var_summary_all,
+    aes(x = source, y = max(df_lienz_all$eqIncome, na.rm = TRUE) * 0.95,
+        label = paste("Var =", round(variance, 0))),
+    inherit.aes = FALSE,
+    size = 4,
+    fontface = "italic"
+  )
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Combine all four datasets with source labels
+df_wien_all <- bind_rows(
+  eusilcA_pop %>% mutate(source = "Population"),
+  eusilcA_smp %>% mutate(source = "Sample 1"),
+  eusilcA_smp2 %>% mutate(source = "Sample 2"),
+  eusilcA_smp3 %>% mutate(source = "Sample 3")
+) %>%
+  filter(district == "Wien")
+
+# Compute variance for each source
+var_summary_wien <- df_wien_all %>%
+  group_by(source) %>%
+  summarise(variance = var(eqIncome, na.rm = TRUE))
+
+# Plot
+ggplot(df_wien_all, aes(x = source, y = eqIncome, fill = source)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  labs(
+    title = "eqIncome Distribution in Wien: Population vs Samples",
+    x = "Data Source",
+    y = "eqIncome"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "none"
+  ) +
+  geom_text(
+    data = var_summary_wien,
+    aes(x = source, y = max(df_wien_all$eqIncome, na.rm = TRUE) * 0.95,
+        label = paste("Var =", round(variance, 0))),
+    inherit.aes = FALSE,
+    size = 4,
+    fontface = "italic"
+  )
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Combine datasets with source labels
+df_lienz_all <- bind_rows(
+  eusilcA_pop %>% mutate(source = "Population"),
+  eusilcA_smp %>% mutate(source = "Sample 1"),
+  eusilcA_smp2 %>% mutate(source = "Sample 2"),
+  eusilcA_smp3 %>% mutate(source = "Sample 3")
+) %>%
+  filter(district == "Lienz")
+
+# Compute summary stats
+summary_stats <- df_lienz_all %>%
+  group_by(source) %>%
+  summarise(
+    mean = mean(eqIncome, na.rm = TRUE),
+    variance = var(eqIncome, na.rm = TRUE)
+  )
+
+# Density plot with mean lines and annotations
+ggplot(df_lienz_all, aes(x = eqIncome, fill = source)) +
+  geom_density(alpha = 0.4) +
+  # Mean lines
+  geom_vline(
+    data = summary_stats,
+    aes(xintercept = mean, color = source),
+    linetype = "dashed",
+    size = 1
+  ) +
+  # Mean labels
+  geom_text(
+    data = summary_stats,
+    aes(x = mean, y = 0, label = paste("Mean =", round(mean, 0))),
+    angle = 90,
+    vjust = -0.5,
+    hjust = 0,
+    size = 3.5,
+    fontface = "italic",
+    color = "black",
+    inherit.aes = FALSE
+  ) +
+  labs(
+    title = "Density of eqIncome in Lienz: Population vs Samples",
+    x = "eqIncome",
+    y = "Density",
+    fill = "Source",
+    color = "Mean Line"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14))
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Combine datasets with source labels
+df_wien_all <- bind_rows(
+  eusilcA_pop %>% mutate(source = "Population"),
+  eusilcA_smp %>% mutate(source = "Sample 1"),
+  eusilcA_smp2 %>% mutate(source = "Sample 2"),
+  eusilcA_smp3 %>% mutate(source = "Sample 3")
+) %>%
+  filter(district == "Wien")
+
+# Compute summary stats
+summary_stats <- df_wien_all %>%
+  group_by(source) %>%
+  summarise(
+    mean = mean(eqIncome, na.rm = TRUE),
+    variance = var(eqIncome, na.rm = TRUE)
+  )
+
+# Density plot with mean lines and annotations
+ggplot(df_wien_all, aes(x = eqIncome, fill = source)) +
+  geom_density(alpha = 0.4) +
+  
+  # Mean lines
+  geom_vline(
+    data = summary_stats,
+    aes(xintercept = mean, color = source),
+    linetype = "dashed",
+    size = 1
+  ) +
+  
+  # Mean labels
+  geom_text(
+    data = summary_stats,
+    aes(x = mean, y = 0, label = paste("Mean =", round(mean, 0))),
+    angle = 90,
+    vjust = -0.5,
+    hjust = 0,
+    size = 3.5,
+    fontface = "italic",
+    color = "black",
+    inherit.aes = FALSE
+  ) +
+  
+  labs(
+    title = "Density of eqIncome in Wien: Population vs Samples",
+    x = "eqIncome",
+    y = "Density",
+    fill = "Source",
+    color = "Mean Line"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14))
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Compute variance by district for each sample
+var_df <- bind_rows(
+  eusilcA_smp %>% mutate(source = "Sample 1"),
+  eusilcA_smp2 %>% mutate(source = "Sample 2"),
+  eusilcA_smp3 %>% mutate(source = "Sample 3")
+) %>%
+  group_by(source, district) %>%
+  summarise(variance = var(eqIncome, na.rm = TRUE), .groups = "drop")
+
+# Create ordering based on Sample 1
+district_order <- var_df %>%
+  filter(source == "Sample 1") %>%
+  arrange(variance) %>%
+  pull(district)
+
+# Apply ordering
+var_df <- var_df %>%
+  mutate(district = factor(district, levels = district_order))
+
+# Plot
+ggplot(var_df, aes(x = district, y = variance, fill = source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  labs(
+    title = "Variance of eqIncome by District",
+    subtitle = "Ordered by Sample 1 (smallest to largest)",
+    x = "District",
+    y = "Variance",
+    fill = "Sample"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 7),
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "top"
+  )
+```
+
+
+
+```{r}
+
+# ggplot(n_sample, aes(x = n)) +
+#   geom_histogram(aes(fill = ..count..), binwidth = 5, color = "white") +
+#   scale_fill_viridis_c(option = "D", direction = -1) +
+#   labs(
+#     title = "Distribution of Sample Sizes Across Districts",
+#     x = "Number of Observations (n)",
+#     y = "Count of Districts",
+#     fill = "District Count"
+#   ) +
+#   theme_minimal()
 ```
 
 We see that the observations are unequally distributed across the different districts. Furthermore, we have 24 districts that are not represented in the sample:
@@ -111,6 +549,8 @@ We see that the observations are unequally distributed across the different dist
 ```{r}
 # Check if all districts in the population are in the sample
 table(eusilcA_popAgg$Domain %in% unique(eusilcA_smp$district))
+
+t <- as.data.frame(unique(eusilcA_smp$district))
 ```
 
 This is a relevant fact, since it will significantly affect the results and even the implementation of some SAE methods --remember that direct methods only generate outputs for areas with sampled observations.
@@ -118,18 +558,151 @@ This is a relevant fact, since it will significantly affect the results and even
 Our target variable `eqIncome` follows a skewed distribution, with majority of individuals concentrated around lower income values (€ 20,000). We see very high agreement between sample values and population values.
 
 ```{r}
-ggplot() +
-  geom_density(data = eusilcA_smp, aes(x = eqIncome, color = "Sample", linetype = "Sample"), lwd = 1) +
-  geom_density(data = eusilcA_pop, aes(x = eqIncome, color = "Population", linetype = "Population"), lwd = 1) +
-  scale_linetype_manual(name = "", values = c("Population" = "dashed", "Sample" = "solid")) +
-  scale_color_manual(name = "", values = c("Population" = "#ca6702", "Sample" = "#69b3a2")) +
-  labs(
-    title = "Equivalised income distribution",
-    x = "eqIncome",
-    y = "density"
-  ) +
-  theme_ipsum()
+# ggplot() +
+#   geom_density(data = eusilcA_smp, aes(x = eqIncome, color = "Sample", linetype = "Sample"), lwd = 1) +
+#   geom_density(data = eusilcA_pop, aes(x = eqIncome, color = "Population", linetype = "Population"), lwd = 1) +
+#   scale_linetype_manual(name = "", values = c("Population" = "dashed", "Sample" = "solid")) +
+#   scale_color_manual(name = "", values = c("Population" = "#ca6702", "Sample" = "#69b3a2")) +
+#   labs(
+#     title = "Equivalised income distribution",
+#     x = "eqIncome",
+#     y = "density"
+#   ) 
 ```
+
+```{r}
+# ggplot() +
+#   geom_histogram(data = eusilcA_smp, aes(x = eqIncome, fill = "Sample"), 
+#                  position = "identity", alpha = 0.5, bins = 50, color = "white") +
+#   geom_histogram(data = eusilcA_pop, aes(x = eqIncome, fill = "Population"), 
+#                  position = "identity", alpha = 0.5, bins = 50, color = "white") +
+#   scale_fill_manual(name = "", values = c("Population" = "#ca6702", "Sample" = "#69b3a2")) +
+#   labs(
+#     title = "Equivalised Income Distribution",
+#     x = "eqIncome",
+#     y = "Count"
+#   ) 
+```
+
+```{r}
+library(ggplot2)
+library(cowplot)
+
+# Density plot
+p_density <- ggplot() +
+  geom_density(data = eusilcA_pop, aes(x = eqIncome, color = "Population", linetype = "Population"), lwd = 1) +
+  geom_density(data = eusilcA_smp, aes(x = eqIncome, color = "Sample 1", linetype = "Sample 1"), lwd = 1) +
+  geom_density(data = eusilcA_smp2, aes(x = eqIncome, color = "Sample 2", linetype = "Sample 2"), lwd = 1) +
+  geom_density(data = eusilcA_smp3, aes(x = eqIncome, color = "Sample 3", linetype = "Sample 3"), lwd = 1) +
+  scale_linetype_manual(name = "", values = c(
+    "Population" = "dashed",
+    "Sample 1" = "solid",
+    "Sample 2" = "dotdash",
+    "Sample 3" = "twodash"
+  )) +
+  scale_color_manual(name = "", values = c(
+    "Population" = "#ca6702",
+    "Sample 1" = "#69b3a2",
+    "Sample 2" = "#577590",
+    "Sample 3" = "#8e8e8e"
+  )) +
+  labs(
+    title = "Equivalised Income Distribution (Density)",
+    x = "eqIncome",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+# Histogram plot
+p_hist <- ggplot() +
+  geom_histogram(data = eusilcA_pop, aes(x = eqIncome, fill = "Population"),
+                 position = "identity", alpha = 0.4, bins = 50, color = "white") +
+  geom_histogram(data = eusilcA_smp, aes(x = eqIncome, fill = "Sample 1"),
+                 position = "identity", alpha = 0.4, bins = 50, color = "white") +
+  geom_histogram(data = eusilcA_smp2, aes(x = eqIncome, fill = "Sample 2"),
+                 position = "identity", alpha = 0.4, bins = 50, color = "white") +
+  geom_histogram(data = eusilcA_smp3, aes(x = eqIncome, fill = "Sample 3"),
+                 position = "identity", alpha = 0.4, bins = 50, color = "white") +
+  scale_fill_manual(name = "", values = c(
+    "Population" = "#ca6702",
+    "Sample 1" = "#69b3a2",
+    "Sample 2" = "#577590",
+    "Sample 3" = "#8e8e8e"
+  )) +
+  labs(
+    title = "Equivalised Income Distribution (Histogram)",
+    x = "eqIncome",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+# Combine plots
+plot_grid(p_hist, p_density, labels = c("A", "B"), ncol = 1, align = "v")
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+
+# Add source labels
+df1 <- eusilcA_smp %>% mutate(source = "Sample 1")
+df2 <- eusilcA_smp2 %>% mutate(source = "Sample 2")
+df3 <- eusilcA_smp3 %>% mutate(source = "Sample 3")
+
+# Combine all samples
+combined_df <- bind_rows(df1, df2, df3)
+
+# Select numeric columns except 'weight', 'pop_n', and 'sample_n'
+numeric_vars <- combined_df %>%
+  select(where(is.numeric)) %>%
+  select(-weight, -pop_n, -sample_n) %>%
+  names()
+
+# Split variables into 3 roughly equal groups
+var_groups <- split(numeric_vars, ceiling(seq_along(numeric_vars) / (length(numeric_vars)/3)))
+
+# Function to create violin plot for a group of variables
+plot_violin_group <- function(vars, group_id) {
+  standardized_df <- combined_df %>%
+    select(all_of(vars), source) %>%
+    pivot_longer(cols = -source, names_to = "variable", values_to = "value") %>%
+    group_by(variable) %>%
+    mutate(value_z = scale(value)) %>%
+    ungroup()
+  
+  ggplot(standardized_df, aes(x = variable, y = value_z, fill = source)) +
+    geom_violin(position = position_dodge(width = 0.8), trim = FALSE, scale = "width", alpha = 0.7) +
+    scale_fill_manual(values = c(
+      "Sample 1" = "#69b3a2",
+      "Sample 2" = "#577590",
+      "Sample 3" = "#8e8e8e"
+    )) +
+    labs(
+      title = paste("Standardized Distributions — Variable Group", group_id),
+      x = "Variable",
+      y = "Standardized Value (Z-score)",
+      fill = "Sample"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(face = "bold", size = 14),
+      legend.position = "top"
+    )
+}
+
+# Generate plots for each group
+plots <- imap(var_groups, plot_violin_group)
+
+# Display plots
+plots[[1]]
+plots[[2]]
+plots[[3]]
+
+```
+
 
 Now that we have a better understanding of the data, we can start calculating our estimators.
 
@@ -146,6 +719,51 @@ $$
 where $N_d$ is the population at the domain of interest $d$; $s_d$ is the set of sampled observations in domain $d$; $w_{di}$ is the sample weight for unit $i$ in domain $d$; and $Y_{di}$ is the observation of the target variable for unit $i$ in domain $d$, for all $i$ in $S_d$. In addition to the direct estimator of the mean, the `direct()` function also gives us the standard deviation and coefficient of variation for each domain.
 
 From our survey, we know that the `weights` column represent the survey weights, and that sampling was done without replacement. This information can usually be found in the documentation of the survey, together with any clusters or strata that might have been defined by the surveyors. Additionally, we need the total population sizes for each domain in the sample.
+
+
+```{r}
+# Load required package
+library(ggplot2)
+
+# Step 1: Define population
+population <- c(2, 4, 6, 8, 10)
+
+# Step 2: Set seed for reproducibility
+set.seed(123)
+
+# Step 3: Generate sample means
+
+# With replacement
+means_with <- replicate(1000, {
+  s <- sample(population, size = 3, replace = TRUE)
+  mean(s)
+})
+
+# Without replacement
+means_without <- replicate(1000, {
+  s <- sample(population, size = 3, replace = FALSE)
+  mean(s)
+})
+
+# Step 4: Check for non-finite values
+sum(!is.finite(means_with))     # Should be 0
+sum(!is.finite(means_without))  # Should be 0
+
+# Step 5: Combine into data frame
+df <- data.frame(
+  mean = c(means_with, means_without),
+  method = rep(c("With Replacement", "Without Replacement"),
+               times = c(length(means_with), length(means_without)))
+)
+
+# Step 6: Plot distributions
+ggplot(df, aes(x = mean, fill = method)) +
+  geom_density(alpha = 0.6, adjust = 1.5) +
+  labs(title = "Distribution of Sample Means",
+       x = "Sample Mean",
+       y = "Density") +
+  theme_minimal()
+```
 
 -   Scenario A: We have access for both sampling weights and domain sizes, and from the survey design we know that sampling was performed without replacement. In this case, the direct estimator is calculated as follows:
 
@@ -200,31 +818,110 @@ $$
 The appropriate scenario depends on the availability of the data. Let's calculate the direct estimator assuming we have access to sample weights, domain sizes, and know the sampling was run without replacement.
 
 ```{r}
+
+p <- as.data.frame(pop_area_size)
+
+##AD - OK, tracked this down to a vector that comes from the package saeTrafo - this needs explanation. 
+str(eusilcA_pop)
+
+district_summary <- eusilcA_pop %>%
+  group_by(district) %>%
+  summarise(
+    n = n(),
+    across(where(is.numeric), mean, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n))  # Optional: sort by count
+
+##OK so pop_area_size is a count of the number of cases included in each district in the full eusilcA_pop file. 
+
 # Clean and match sample population sizes
 domsize_smp <- data.frame(
   district = names(pop_area_size),
   N = pop_area_size
 ) %>%
   filter(district %in% eusilcA_smp$district)
+
+domsize_smp3 <- data.frame(
+  district = names(pop_area_size),
+  N = pop_area_size
+) %>%
+  filter(district %in% eusilcA_smp3$district)
+
+eusilcA_smp$district <- droplevels(eusilcA_smp$district)
+
+##domzise_smp only has 70 cases as it uses eusilcA_smp
 ```
 
 ```{r}
 # Calculate direct estimator
-dir_est_a <- sae::direct(
-  y = eusilcA_smp$eqIncome,
-  dom = eusilcA_smp$district,
-  sweight = eusilcA_smp$weight,
-  domsize = domsize_smp,
+dir_est_a1 <- sae::direct(
+  y = eusilcA_smp$eqIncome, #vector specifying the individual values of the variable for which we want to estimate the domain means.
+  dom = eusilcA_smp$district, # vector or factor (same size as y) with domain codes.
+  sweight = eusilcA_smp$weight, # optional vector (same size as y) with sampling weights. When this argument is not included, by default estimators are obtained under simple random sampling (SRS).
+  domsize = domsize_smp, # D*2 data frame with domain codes in the first column and the corresponding domain population sizes in the second column. This argument is not required when sweight is not included and replace=TRUE (SRS with replacement).
   replace = FALSE
 )
 
 # Format the direct estimator for future use
-dir_est <- dir_est_a %>% 
+dir_est1 <- dir_est_a %>% 
   mutate(Var = SD^2) %>% 
-  dplyr::select("Domain","Direct","Var")
+  dplyr::select("Domain","Direct","Var", "SampSize")
 
 head(dir_est)
+
+library(ggplot2)
+
+ggplot(dir_est1, aes(x = log(SampSize), y = log(Var))) +
+  geom_point(color = "#2a9d8f", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "#264653", linetype = "dashed") +
+
+  labs(
+    title = "Variance vs Sample Size by Domain",
+    x = "Sample Size",
+    y = "Variance",
+    caption = "Dashed line: LOESS smooth"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12)
+  )
 ```
+
+```{r}
+# Calculate direct estimator
+dir_est_a3 <- sae::direct(
+  y = eusilcA_smp3$eqIncome, #vector specifying the individual values of the variable for which we want to estimate the domain means.
+  dom = eusilcA_smp3$district, # vector or factor (same size as y) with domain codes.
+  sweight = eusilcA_smp3$weight, # optional vector (same size as y) with sampling weights. When this argument is not included, by default estimators are obtained under simple random sampling (SRS).
+  domsize = domsize_smp3, # D*2 data frame with domain codes in the first column and the corresponding domain population sizes in the second column. This argument is not required when sweight is not included and replace=TRUE (SRS with replacement).
+  replace = FALSE
+)
+
+# Format the direct estimator for future use
+dir_est3 <- dir_est_a3 %>% 
+  mutate(Var = SD^2) %>% 
+  dplyr::select("Domain","Direct","Var", "SampSize")
+
+
+head(dir_est3)
+
+ggplot(dir_est3, aes(x = log(SampSize), y = log(Var))) +
+  geom_point(color = "#2a9d8f", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "#264653", linetype = "dashed") +
+  labs(
+    title = "Variance vs Sample Size by Domain",
+    x = "Sample Size",
+    y = "Variance",
+    caption = "Dashed line: LOESS smooth"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12)
+  )
+```
+
 
 ### Task – How would you estimate the alternative direct estimators?
 
@@ -233,9 +930,33 @@ Hint: You can use the same formula we used for Scenario A, but changing the para
 ```{r}
 # Scenario B -- No replacement, with domain sizes, no weights
 
+# Calculate direct estimator
+dir_est_b <- sae::direct(
+  y = eusilcA_smp$eqIncome, #vector specifying the individual values of the variable for which we want to estimate the domain means.
+  dom = eusilcA_smp$district, # vector or factor (same size as y) with domain codes.
+  domsize = domsize_smp, # D*2 data frame with domain codes in the first column and the corresponding domain population sizes in the second column. This argument is not required when sweight is not included and replace=TRUE (SRS with replacement).
+  replace = FALSE
+)
+
 # Scenario C -- With replacement, weights and domain sizes
 
+# Calculate direct estimator
+dir_est_c <- sae::direct(
+  y = eusilcA_smp$eqIncome, #vector specifying the individual values of the variable for which we want to estimate the domain means.
+  dom = eusilcA_smp$district, # vector or factor (same size as y) with domain codes.
+  sweight = eusilcA_smp$weight, # optional vector (same size as y) with sampling weights. When this argument is not included, by default estimators are obtained under simple random sampling (SRS).
+  domsize = domsize_smp, # D*2 data frame with domain codes in the first column and the corresponding domain population sizes in the second column. This argument is not required when sweight is not included and replace=TRUE (SRS with replacement).
+  replace = TRUE
+)
+
 # Scenario D -- With replacement, no weights nor domain sizes
+
+# Calculate direct estimator
+dir_est_d <- sae::direct(
+  y = eusilcA_smp$eqIncome, #vector specifying the individual values of the variable for which we want to estimate the domain means.
+  dom = eusilcA_smp$district,
+  replace = TRUE
+)
 
 ```
 
@@ -244,7 +965,7 @@ Once we have calculated the direct estimates, we can plot them in a map. We see 
 ```{r}
 # Create data frame
 dir_est_a_gdf <- merge(
-  dir_est, 
+  dir_est_a, 
   shape_austria_dis[,c("PB")], 
   by.x = "Domain",
   by.y = "PB") %>% 
